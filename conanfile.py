@@ -1,68 +1,46 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from conans import ConanFile, CMake, tools
+from conans import ConanFile, tools, AutoToolsBuildEnvironment
 import os
 
 
-class LibnameConan(ConanFile):
-    name = "libname"
-    version = "0.0.0"
-    url = "https://github.com/bincrafters/conan-libname"
-    description = "Keep it short"
-
-    # Indicates License type of the packaged library
-    license = "MIT"
-
-    # Packages the license for the conanfile.py
+class OpenH264Conan(ConanFile):
+    name = "openh264"
+    version = "1.7.0"
+    url = "https://github.com/bincrafters/conan-openh264"
+    description = "Open Source H.264 Codec"
+    license = "BSD 2-Clause"
     exports = ["LICENSE.md"]
 
-    # Remove following lines if the target lib does not use cmake.
-    exports_sources = ["CMakeLists.txt"]
-    generators = "cmake"
-
-    # Options may need to change depending on the packaged library.
     settings = "os", "arch", "compiler", "build_type"
     options = {"shared": [True, False]}
     default_options = "shared=False"
+    source_subfolder = "sources"
 
-    # Custom attributes for Bincrafters recipe conventions
-    source_subfolder = "source_subfolder"
-    build_subfolder = "build_subfolder"
-
-    # Use version ranges for dependencies unless there's a reason not to
-    requires = (
-        "OpenSSL/[>=1.0.2l]@conan/stable",
-        "zlib/[>=1.2.11]@conan/stable"
-    )
+    def build_requirements(self):
+        self.build_requires('nasm_installer/[>=2.13.02]@bincrafters/stable')
 
     def source(self):
-        source_url = "https://github.com/libauthor/libname"
+        source_url = "https://github.com/cisco/openh264"
         tools.get("{0}/archive/v{1}.tar.gz".format(source_url, self.version))
         extracted_dir = self.name + "-" + self.version
-
-        #Rename to "source_subfolder" is a convention to simplify later steps
         os.rename(extracted_dir, self.source_subfolder)
 
-
     def build(self):
-        cmake = CMake(self)
-        cmake.definitions["BUILD_TESTS"] = False # example
-        cmake.configure(build_folder=self.build_subfolder)
-        cmake.build()
-        cmake.install()
+        with tools.chdir(self.source_subfolder):
+            prefix = os.path.abspath(self.package_folder)
+            tools.replace_in_file('Makefile', 'PREFIX=/usr/local', 'PREFIX=%s' % prefix)
+            if self.settings.arch == 'x86':
+                arch = 'i386'
+            elif self.settings.arch == 'x86_64':
+                arch = 'x86_64'
+            env_build = AutoToolsBuildEnvironment(self)
+            env_build.make(args=['ARCH=%s' % arch])
+            env_build.make(args=['install'])
 
     def package(self):
-        # If the CMakeLists.txt has a proper install method, the steps below may be redundant
-        # If so, you can replace all the steps below with the word "pass"
-        include_folder = os.path.join(self.source_subfolder, "include")
         self.copy(pattern="LICENSE", dst="license", src=self.source_subfolder)
-        self.copy(pattern="*", dst="include", src=include_folder)
-        self.copy(pattern="*.dll", dst="bin", keep_path=False)
-        self.copy(pattern="*.lib", dst="lib", keep_path=False)
-        self.copy(pattern="*.a", dst="lib", keep_path=False)
-        self.copy(pattern="*.so*", dst="lib", keep_path=False)
-        self.copy(pattern="*.dylib", dst="lib", keep_path=False)
 
 
     def package_info(self):
