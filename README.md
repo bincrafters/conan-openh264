@@ -2,7 +2,7 @@
 [![Build Status](https://travis-ci.org/bincrafters/conan-openh264.svg?branch=testing%2F1.7.0)](https://travis-ci.org/bincrafters/conan-openh264)
 [![Build status](https://ci.appveyor.com/api/projects/status/github/bincrafters/conan-openh264?branch=testing%2F1.7.0&svg=true)](https://ci.appveyor.com/project/bincrafters/conan-openh264)
 
-[Conan.io](https://conan.io) package recipe for *openh264*.
+[Conan.io](https://conan.io) package recipe for [*openh264*](http://www.openh264.org/).
 
 Open Source H.264 Codec
 
@@ -58,4 +58,4 @@ The following command both runs all the steps of the conan file, and publishes t
 NOTE: The conan recipe license applies only to the files of this recipe, which can be used to build and package openh264.
 It does *not* in any way apply or is related to the actual software being packaged.
 
-[MIT](git@github.com:bincrafters/conan-openh264.git/blob/testing/1.7.0/LICENSE.md)
+[MIT](https://github.com/bincrafters/conan-openh264.git/blob/testing/1.7.0/LICENSE)
