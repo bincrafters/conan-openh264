@@ -19,9 +19,6 @@ class OpenH264Conan(ConanFile):
     default_options = "shared=False"
     source_subfolder = "sources"
 
-    def build_requirements(self):
-        self.build_requires('nasm_installer/[>=2.13.02]@bincrafters/stable')
-
     def source(self):
         source_url = "https://github.com/cisco/openh264"
         tools.get("{0}/archive/v{1}.tar.gz".format(source_url, self.version))
@@ -29,16 +26,34 @@ class OpenH264Conan(ConanFile):
         os.rename(extracted_dir, self.source_subfolder)
 
     def build(self):
+        if self.settings.compiler == 'Visual Studio':
+            msys_bin = self.deps_env_info['msys2_installer'].MSYS_BIN
+            with tools.environment_append({'PATH': [msys_bin],
+                                           'CONAN_BASH_PATH': os.path.join(msys_bin, 'bash.exe')}):
+                with tools.vcvars(self.settings, filter_known_paths=False, force=True):
+                    self.build_configure()
+        else:
+            self.build_configure()
+
+    def build_configure(self):
         with tools.chdir(self.source_subfolder):
             prefix = os.path.abspath(self.package_folder)
+            if self.settings.compiler == 'Visual Studio':
+                prefix = tools.unix_path(prefix, tools.MSYS2)
             tools.replace_in_file('Makefile', 'PREFIX=/usr/local', 'PREFIX=%s' % prefix)
             if self.settings.arch == 'x86':
                 arch = 'i386'
             elif self.settings.arch == 'x86_64':
                 arch = 'x86_64'
+            args = ['ARCH=%s' % arch]
+
             env_build = AutoToolsBuildEnvironment(self)
-            env_build.make(args=['ARCH=%s' % arch])
-            env_build.make(args=['install'])
+            if self.settings.compiler == 'Visual Studio':
+                args.append('OS=msvc')
+                env_build.flags.append('-FS')
+            env_build.make(args=args)
+            args.append('install')
+            env_build.make(args=args)
 
     def package(self):
         self.copy(pattern="LICENSE", dst="licenses", src=self.source_subfolder)
