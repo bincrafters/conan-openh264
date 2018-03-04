@@ -50,6 +50,12 @@ class OpenH264Conan(ConanFile):
 
             env_build = AutoToolsBuildEnvironment(self)
             if self.settings.compiler == 'Visual Studio':
+                tools.replace_in_file(os.path.join('build', 'platform-msvc.mk'),
+                                      'CFLAGS_OPT += -MT',
+                                      'CFLAGS_OPT += -%s' % str(self.settings.compiler.runtime))
+                tools.replace_in_file(os.path.join('build', 'platform-msvc.mk'),
+                                      'CFLAGS_DEBUG += -MTd -Gm',
+                                      'CFLAGS_DEBUG += -%s -Gm' % str(self.settings.compiler.runtime))
                 args.append('OS=msvc')
                 env_build.flags.append('-FS')
             env_build.make(args=args)
