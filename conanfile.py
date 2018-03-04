@@ -58,6 +58,8 @@ class OpenH264Conan(ConanFile):
                                       'CFLAGS_DEBUG += -%s -Gm' % str(self.settings.compiler.runtime))
                 args.append('OS=msvc')
                 env_build.flags.append('-FS')
+            elif self.settings.compiler == 'clang' and self.settings.compiler.libcxx == 'libc++':
+                tools.replace_in_file('Makefile', 'STATIC_LDFLAGS=-lstdc++', 'STATIC_LDFLAGS=-lc++\nLDFLAGS+=-lc++')
             env_build.make(args=args)
             args.append('install')
             env_build.make(args=args)
