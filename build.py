@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 
-from bincrafters import build_template_default
+from bincrafters import build_template_default, build_shared
 
 
 def add_build_requires(builds):
