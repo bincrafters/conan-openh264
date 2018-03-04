@@ -43,6 +43,5 @@ class OpenH264Conan(ConanFile):
     def package(self):
         self.copy(pattern="LICENSE", dst="license", src=self.source_subfolder)
 
-
     def package_info(self):
         self.cpp_info.libs = tools.collect_libs(self)
