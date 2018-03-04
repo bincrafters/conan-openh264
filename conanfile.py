@@ -59,4 +59,7 @@ class OpenH264Conan(ConanFile):
         self.copy(pattern="LICENSE", dst="licenses", src=self.source_subfolder)
 
     def package_info(self):
-        self.cpp_info.libs = tools.collect_libs(self)
+        if self.settings.compiler == 'Visual Studio' and self.options.shared:
+            self.cpp_info.libs = ['openh264_dll']
+        else:
+            self.cpp_info.libs = ['openh264']
