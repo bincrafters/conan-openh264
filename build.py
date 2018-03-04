@@ -12,7 +12,7 @@ def add_build_requires(builds):
 def add_required_installers(build):
     installers = ['nasm_installer/2.13.02@bincrafters/stable']
     if build_shared.get_os() == "Windows":
-        installers.append('msys2_installer/laster@bincrafters/stable')
+        installers.append('msys2_installer/latest@bincrafters/stable')
     build.build_requires.update({"*": installers})
     return build
 
