@@ -20,6 +20,9 @@ class OpenH264Conan(ConanFile):
     default_options = "shared=False"
     source_subfolder = "sources"
 
+    def build_requirements(self):
+        self.build_requires("nasm_installer/2.13.02@bincrafters/stable")
+
     def source(self):
         source_url = "https://github.com/cisco/openh264"
         tools.get("{0}/archive/v{1}.tar.gz".format(source_url, self.version))
