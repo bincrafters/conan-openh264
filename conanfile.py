@@ -10,9 +10,11 @@ class OpenH264Conan(ConanFile):
     name = "openh264"
     version = "1.7.0"
     url = "https://github.com/bincrafters/conan-openh264"
+    author = "bincrafters <bincrafters@gmail.com>"
     homepage = 'http://www.openh264.org/'
     description = "Open Source H.264 Codec"
-    license = "BSD 2-Clause"
+    topics = "conan", "h264", "codec", "video", "compression",
+    license = "BSD-2-Clause"
     exports = ["LICENSE.md"]
 
     settings = "os", "arch", "compiler", "build_type"
@@ -25,7 +27,8 @@ class OpenH264Conan(ConanFile):
 
     def source(self):
         source_url = "https://github.com/cisco/openh264"
-        tools.get("{0}/archive/v{1}.tar.gz".format(source_url, self.version))
+        url = "{0}/archive/v{1}.tar.gz".format(source_url, self.version)
+        tools.get(url, sha256="1fec931eb5c94279ad219a5b6e0202358e94a93a90cfb1603578c326abfc1238")
         extracted_dir = self.name + "-" + self.version
         os.rename(extracted_dir, self._source_subfolder)
 
