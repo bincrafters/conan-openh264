@@ -1,5 +1,5 @@
 [![Download](https://api.bintray.com/packages/bincrafters/public-conan/openh264%3Abincrafters/images/download.svg) ](https://bintray.com/bincrafters/public-conan/openh264%3Abincrafters/_latestVersion)
-[![Build Status](https://travis-ci.org/bincrafters/conan-openh264.svg?branch=testing%2F1.7.0)](https://travis-ci.org/bincrafters/conan-openh264)
+[![Build Status](https://travis-ci.com/bincrafters/conan-openh264.svg?branch=testing%2F1.7.0)](https://travis-ci.com/bincrafters/conan-openh264)
 [![Build status](https://ci.appveyor.com/api/projects/status/github/bincrafters/conan-openh264?branch=testing%2F1.7.0&svg=true)](https://ci.appveyor.com/project/bincrafters/conan-openh264)
 
 [Conan.io](https://conan.io) package recipe for [*openh264*](http://www.openh264.org/).

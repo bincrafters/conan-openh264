@@ -17,8 +17,8 @@ class OpenH264Conan(ConanFile):
 
     settings = "os", "arch", "compiler", "build_type"
     options = {"shared": [True, False]}
-    default_options = "shared=False"
-    source_subfolder = "sources"
+    default_options = {'shared': 'False'}
+    _source_subfolder = "sources"
 
     def build_requirements(self):
         self.build_requires("nasm_installer/2.13.02@bincrafters/stable")
@@ -27,7 +27,7 @@ class OpenH264Conan(ConanFile):
         source_url = "https://github.com/cisco/openh264"
         tools.get("{0}/archive/v{1}.tar.gz".format(source_url, self.version))
         extracted_dir = self.name + "-" + self.version
-        os.rename(extracted_dir, self.source_subfolder)
+        os.rename(extracted_dir, self._source_subfolder)
 
     def build(self):
         if self.settings.compiler == 'Visual Studio':
@@ -40,7 +40,7 @@ class OpenH264Conan(ConanFile):
             self.build_configure()
 
     def build_configure(self):
-        with tools.chdir(self.source_subfolder):
+        with tools.chdir(self._source_subfolder):
             prefix = os.path.abspath(self.package_folder)
             if self.settings.compiler == 'Visual Studio':
                 prefix = tools.unix_path(prefix, tools.MSYS2)
@@ -68,7 +68,7 @@ class OpenH264Conan(ConanFile):
             env_build.make(args=args)
 
     def package(self):
-        self.copy(pattern="LICENSE", dst="licenses", src=self.source_subfolder)
+        self.copy(pattern="LICENSE", dst="licenses", src=self._source_subfolder)
         if self.options.shared:
             exts = ['*.a']
         else:
