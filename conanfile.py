@@ -10,10 +10,10 @@ class OpenH264Conan(ConanFile):
     name = "openh264"
     version = "1.7.0"
     url = "https://github.com/bincrafters/conan-openh264"
-    author = "bincrafters <bincrafters@gmail.com>"
+    author = "Bincrafters <bincrafters@gmail.com>"
     homepage = 'http://www.openh264.org/'
     description = "Open Source H.264 Codec"
-    topics = "conan", "h264", "codec", "video", "compression",
+    topics = ("conan", "h264", "codec", "video", "compression", )
     license = "BSD-2-Clause"
     exports = ["LICENSE.md"]
 
