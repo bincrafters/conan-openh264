@@ -28,7 +28,7 @@ class OpenH264Conan(ConanFile):
     def source(self):
         source_url = "https://github.com/cisco/openh264"
         url = "{0}/archive/v{1}.tar.gz".format(source_url, self.version)
-        tools.get(url, sha256="1fec931eb5c94279ad219a5b6e0202358e94a93a90cfb1603578c326abfc1238")
+        tools.get(url, sha256="9c07c38d7de00046c9c52b12c76a2af7648b70d05bd5460c8b67f6895738653f")
         extracted_dir = self.name + "-" + self.version
         os.rename(extracted_dir, self._source_subfolder)
 
