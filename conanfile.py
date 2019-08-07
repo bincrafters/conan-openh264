@@ -10,37 +10,37 @@ class OpenH264Conan(ConanFile):
     name = "openh264"
     version = "1.7.0"
     url = "https://github.com/bincrafters/conan-openh264"
+    author = "Bincrafters <bincrafters@gmail.com>"
     homepage = 'http://www.openh264.org/'
     description = "Open Source H.264 Codec"
-    license = "BSD 2-Clause"
+    topics = ("conan", "h264", "codec", "video", "compression", )
+    license = "BSD-2-Clause"
     exports = ["LICENSE.md"]
 
     settings = "os", "arch", "compiler", "build_type"
     options = {"shared": [True, False]}
-    default_options = "shared=False"
-    source_subfolder = "sources"
+    default_options = {'shared': 'False'}
+    _source_subfolder = "sources"
 
     def build_requirements(self):
         self.build_requires("nasm_installer/2.13.02@bincrafters/stable")
+        if tools.os_info.is_windows:
+            if "CONAN_BASH_PATH" not in os.environ:
+                self.build_requires("msys2_installer/latest@bincrafters/stable")
 
     def source(self):
         source_url = "https://github.com/cisco/openh264"
-        tools.get("{0}/archive/v{1}.tar.gz".format(source_url, self.version))
+        url = "{0}/archive/v{1}.tar.gz".format(source_url, self.version)
+        tools.get(url, sha256="9c07c38d7de00046c9c52b12c76a2af7648b70d05bd5460c8b67f6895738653f")
         extracted_dir = self.name + "-" + self.version
-        os.rename(extracted_dir, self.source_subfolder)
+        os.rename(extracted_dir, self._source_subfolder)
 
     def build(self):
-        if self.settings.compiler == 'Visual Studio':
-            msys_bin = self.deps_env_info['msys2_installer'].MSYS_BIN
-            with tools.environment_append({'PATH': [msys_bin],
-                                           'CONAN_BASH_PATH': os.path.join(msys_bin, 'bash.exe')}):
-                with tools.vcvars(self.settings, filter_known_paths=False, force=True):
-                    self.build_configure()
-        else:
+        with tools.vcvars(self.settings) if self.settings.compiler == 'Visual Studio' else tools.no_op():
             self.build_configure()
 
     def build_configure(self):
-        with tools.chdir(self.source_subfolder):
+        with tools.chdir(self._source_subfolder):
             prefix = os.path.abspath(self.package_folder)
             if self.settings.compiler == 'Visual Studio':
                 prefix = tools.unix_path(prefix, tools.MSYS2)
@@ -68,7 +68,7 @@ class OpenH264Conan(ConanFile):
             env_build.make(args=args)
 
     def package(self):
-        self.copy(pattern="LICENSE", dst="licenses", src=self.source_subfolder)
+        self.copy(pattern="LICENSE", dst="licenses", src=self._source_subfolder)
         if self.options.shared:
             exts = ['*.a']
         else:
