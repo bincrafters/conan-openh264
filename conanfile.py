@@ -84,4 +84,9 @@ class OpenH264Conan(ConanFile):
         else:
             self.cpp_info.libs = ['openh264']
         if self.settings.os == "Linux":
-            self.cpp_info.libs.append('pthread')
+            self.cpp_info.libs.extend(['m', 'pthread'])
+        libcxx = self.settings.get_safe("compiler.libcxx")
+        if libcxx in ["libstdc++", "libstdc++11"]:
+            self.cpp_info.libs.append("stdc++")
+        elif libcxx == "libc++":
+            self.cpp_info.libs.append("c++")
