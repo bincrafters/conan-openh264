@@ -24,6 +24,9 @@ class OpenH264Conan(ConanFile):
 
     def build_requirements(self):
         self.build_requires("nasm_installer/2.13.02@bincrafters/stable")
+        if tools.os_info.is_windows:
+            if "CONAN_BASH_PATH" not in os.environ:
+                self.build_requires("msys2_installer/latest@bincrafters/stable")
 
     def source(self):
         source_url = "https://github.com/cisco/openh264"
@@ -33,13 +36,7 @@ class OpenH264Conan(ConanFile):
         os.rename(extracted_dir, self._source_subfolder)
 
     def build(self):
-        if self.settings.compiler == 'Visual Studio':
-            msys_bin = self.deps_env_info['msys2_installer'].MSYS_BIN
-            with tools.environment_append({'PATH': [msys_bin],
-                                           'CONAN_BASH_PATH': os.path.join(msys_bin, 'bash.exe')}):
-                with tools.vcvars(self.settings, filter_known_paths=False, force=True):
-                    self.build_configure()
-        else:
+        with tools.vcvars(self.settings) if self.settings.compiler == 'Visual Studio' else tools.no_op():
             self.build_configure()
 
     def build_configure(self):
