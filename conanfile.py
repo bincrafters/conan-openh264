@@ -42,8 +42,8 @@ class OpenH264Conan(ConanFile):
     def build_configure(self):
         with tools.chdir(self._source_subfolder):
             prefix = os.path.abspath(self.package_folder)
-            if self.settings.compiler == 'Visual Studio':
-                prefix = tools.unix_path(prefix, tools.MSYS2)
+            if tools.os_info.is_windows:
+                prefix = tools.unix_path(prefix)
             tools.replace_in_file('Makefile', 'PREFIX=/usr/local', 'PREFIX=%s' % prefix)
             if self.settings.arch == 'x86':
                 arch = 'i386'
@@ -61,10 +61,13 @@ class OpenH264Conan(ConanFile):
                                       'CFLAGS_DEBUG += -%s -Gm' % str(self.settings.compiler.runtime))
                 args.append('OS=msvc')
                 env_build.flags.append('-FS')
-            elif self.settings.compiler == 'clang' and self.settings.compiler.libcxx == 'libc++':
-                tools.replace_in_file('Makefile', 'STATIC_LDFLAGS=-lstdc++', 'STATIC_LDFLAGS=-lc++\nLDFLAGS+=-lc++')
+            else:
+                if tools.os_info.is_windows:
+                    args.append('OS=mingw_nt')
+                if self.settings.compiler == 'clang' and self.settings.compiler.libcxx == 'libc++':
+                    tools.replace_in_file('Makefile', 'STATIC_LDFLAGS=-lstdc++', 'STATIC_LDFLAGS=-lc++\nLDFLAGS+=-lc++')
             env_build.make(args=args)
-            args.append('install')
+            args.append('install-' + ('shared' if self.options.shared else 'static-lib'))
             env_build.make(args=args)
 
     def package(self):
