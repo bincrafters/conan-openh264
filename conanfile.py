@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 from conans import ConanFile, tools, AutoToolsBuildEnvironment
 import os
 import fnmatch
@@ -23,7 +20,7 @@ class OpenH264Conan(ConanFile):
     _source_subfolder = "sources"
 
     def build_requirements(self):
-        self.build_requires("nasm_installer/2.13.02@bincrafters/stable")
+        self.build_requires("nasm/2.13.02")
         if tools.os_info.is_windows:
             if "CONAN_BASH_PATH" not in os.environ:
                 self.build_requires("msys2_installer/latest@bincrafters/stable")
