@@ -83,9 +83,12 @@ class OpenH264Conan(ConanFile):
                     tools.replace_in_file(os.path.join("build", "platform-android.mk"),
                         "-I$(NDKROOT)/sources/cxx-stl/stlport/stlport",
                         "-I$(NDKROOT)/sources/cxx-stl/llvm-libc++/include")
+                    libcxx = str(self.settings.compiler.libcxx)
                     tools.replace_in_file(os.path.join("build", "platform-android.mk"),
                         "$(NDKROOT)/sources/cxx-stl/stlport/libs/$(APP_ABI)/libstlport_static.a",
-                        "$(NDKROOT)/sources/cxx-stl/llvm-libc++/libs/$(APP_ABI)/libc++_static.a")
+                        ("$(NDKROOT)/sources/cxx-stl/llvm-libc++/libs/$(APP_ABI)/lib%s "
+                            % "c++_static.a" if libcxx == "c++_static" else "c++_shared.so") +
+                        "$(NDKROOT)/sources/cxx-stl/llvm-libc++/libs/$(APP_ABI)/libc++abi.a")
                     tools.replace_in_file(os.path.join("build", "platform-android.mk"),
                         "CXX = $(TOOLCHAINPREFIX)g++\nCC = $(TOOLCHAINPREFIX)gcc",
                         "")
@@ -138,8 +141,12 @@ class OpenH264Conan(ConanFile):
             self.cpp_info.libs = ['openh264']
         if self.settings.os == "Linux":
             self.cpp_info.libs.extend(['m', 'pthread'])
+        if self.settings.os == "Android":
+            self.cpp_info.libs.append("m")
         libcxx = self.settings.get_safe("compiler.libcxx")
         if libcxx in ["libstdc++", "libstdc++11"]:
             self.cpp_info.libs.append("stdc++")
         elif libcxx == "libc++":
             self.cpp_info.libs.append("c++")
+        elif libcxx in ["c++_static", "c++_shared"]:
+            self.cpp_info.libs.extend([libcxx, "c++abi"])
