@@ -36,16 +36,31 @@ class OpenH264Conan(ConanFile):
         with tools.vcvars(self.settings) if self.settings.compiler == 'Visual Studio' else tools.no_op():
             self.build_configure()
 
+    @property
+    def _use_winbash(self):
+        return tools.os_info.is_windows and (self.settings.compiler == 'gcc' or tools.cross_building(self.settings))
+
+    def _format_path(self, path):
+        return tools.unix_path(path) if self._use_winbash else path
+
     def build_configure(self):
         with tools.chdir(self._source_subfolder):
             prefix = os.path.abspath(self.package_folder)
             if tools.os_info.is_windows:
                 prefix = tools.unix_path(prefix)
             tools.replace_in_file('Makefile', 'PREFIX=/usr/local', 'PREFIX=%s' % prefix)
-            if self.settings.arch == 'x86':
-                arch = 'i386'
-            elif self.settings.arch == 'x86_64':
-                arch = 'x86_64'
+            if self.settings.os == "Android":
+                arch = str(self.settings.arch)
+                arch = {"armv7": "arm",
+                        "armv8": "arm64"}.get(arch, arch)
+            else:
+                if self.settings.arch == 'x86':
+                    arch = 'i386'
+                elif self.settings.arch == 'x86_64':
+                    arch = 'x86_64'
+                else:
+                    arch = self.settings.arch
+
             args = ['ARCH=%s' % arch]
 
             env_build = AutoToolsBuildEnvironment(self)
@@ -63,6 +78,44 @@ class OpenH264Conan(ConanFile):
                     args.append('OS=mingw_nt')
                 if self.settings.compiler == 'clang' and self.settings.compiler.libcxx == 'libc++':
                     tools.replace_in_file('Makefile', 'STATIC_LDFLAGS=-lstdc++', 'STATIC_LDFLAGS=-lc++\nLDFLAGS+=-lc++')
+                if self.settings.os == "Android":
+                    args.append("NDKLEVEL=%s" % str(self.settings.os.api_level))
+                    tools.replace_in_file(os.path.join("build", "platform-android.mk"),
+                        "-I$(NDKROOT)/sources/cxx-stl/stlport/stlport",
+                        "-I$(NDKROOT)/sources/cxx-stl/llvm-libc++/include")
+                    tools.replace_in_file(os.path.join("build", "platform-android.mk"),
+                        "$(NDKROOT)/sources/cxx-stl/stlport/libs/$(APP_ABI)/libstlport_static.a",
+                        "$(NDKROOT)/sources/cxx-stl/llvm-libc++/libs/$(APP_ABI)/libc++_static.a")
+                    tools.replace_in_file(os.path.join("build", "platform-android.mk"),
+                        "CXX = $(TOOLCHAINPREFIX)g++\nCC = $(TOOLCHAINPREFIX)gcc",
+                        "")
+                    # Use default sysroot
+                    tools.replace_in_file(os.path.join("build", "platform-android.mk"),
+                        "CFLAGS += -DANDROID_NDK -fpic --sysroot=$(SYSROOT) -MMD -MP",
+                        "CFLAGS += -DANDROID_NDK -fpic -MMD -MP")
+                    tools.replace_in_file(os.path.join("build", "platform-android.mk"),
+                        "LDFLAGS += --sysroot=$(SYSROOT)",
+                        "")
+                    # No need to auto detect compilers, so remove it
+                    tools.replace_in_file(os.path.join("build", "platform-android.mk"),
+                        "$(error Compiler not found, bad NDKROOT or ARCH?)",
+                        "")
+                    args.append('OS=android')
+                    ndk_home = os.environ["ANDROID_NDK_HOME"]
+                    args.append('NDKROOT=%s' % ndk_home)  # not NDK_ROOT here
+                    target = "android-%s" % str(self.settings.os.api_level)
+                    args.append('TARGET=%s' % target)
+                    tools.replace_in_file(os.path.join("codec", "build", "android", "dec", "jni", "Application.mk"),
+                        "APP_STL := stlport_shared",
+                        "APP_STL := %s" % str(self.settings.compiler.libcxx))
+                    tools.replace_in_file(os.path.join("codec", "build", "android", "dec", "jni", "Application.mk"),
+                        "APP_PLATFORM := android-12",
+                        "APP_PLATFORM := %s" % target)
+                    args.append("CCASFLAGS=$(CFLAGS) -fno-integrated-as")
+                    # No need to build binaries
+                    tools.replace_in_file("Makefile",
+                        "all: libraries binaries",
+                        "all: libraries")
             env_build.make(args=args)
             args.append('install-' + ('shared' if self.options.shared else 'static-lib'))
             env_build.make(args=args)
