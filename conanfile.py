@@ -84,9 +84,7 @@ class OpenH264Conan(ConanFile):
                 if self.settings.os == "Android":
                     args.append("NDKLEVEL=%s" % str(self.settings.os.api_level))
                     libcxx = str(self.settings.compiler.libcxx)
-                    tools.replace_in_file(os.path.join("build", "platform-android.mk"),
-                        "$(NDKROOT)/sources/cxx-stl/stlport/libs/$(APP_ABI)/libstlport_static.a",
-                        ("$(NDKROOT)/sources/cxx-stl/llvm-libc++/libs/$(APP_ABI)/lib%s "
+                    args.append("STL_LIB=" + ("$(NDKROOT)/sources/cxx-stl/llvm-libc++/libs/$(APP_ABI)/lib%s "
                             % "c++_static.a" if libcxx == "c++_static" else "c++_shared.so") +
                         "$(NDKROOT)/sources/cxx-stl/llvm-libc++/libs/$(APP_ABI)/libc++abi.a")
                     args.append('OS=android')
@@ -101,11 +99,7 @@ class OpenH264Conan(ConanFile):
                         "APP_PLATFORM := android-12",
                         "APP_PLATFORM := %s" % target)
                     args.append("CCASFLAGS=$(CFLAGS) -fno-integrated-as")
-                    # No need to build binaries
-                    tools.replace_in_file("Makefile",
-                        "all: libraries binaries",
-                        "all: libraries")
-            env_build.make(args=args)
+            env_build.make(args=args, target="libraries")
             args.append('install-' + ('shared' if self.options.shared else 'static-lib'))
             env_build.make(args=args)
 
