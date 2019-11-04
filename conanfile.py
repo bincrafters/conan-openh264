@@ -19,6 +19,8 @@ class OpenH264Conan(ConanFile):
     default_options = {'shared': 'False'}
     _source_subfolder = "sources"
 
+    exports_sources = ["platform-android.mk.patch"]
+
     def build_requirements(self):
         self.build_requires("nasm/2.13.02")
         if tools.os_info.is_windows:
@@ -44,6 +46,7 @@ class OpenH264Conan(ConanFile):
         return tools.unix_path(path) if self._use_winbash else path
 
     def build_configure(self):
+        tools.patch(os.path.join(self._source_subfolder, "build"), "platform-android.mk.patch")
         with tools.chdir(self._source_subfolder):
             prefix = os.path.abspath(self.package_folder)
             if tools.os_info.is_windows:
@@ -80,29 +83,12 @@ class OpenH264Conan(ConanFile):
                     tools.replace_in_file('Makefile', 'STATIC_LDFLAGS=-lstdc++', 'STATIC_LDFLAGS=-lc++\nLDFLAGS+=-lc++')
                 if self.settings.os == "Android":
                     args.append("NDKLEVEL=%s" % str(self.settings.os.api_level))
-                    tools.replace_in_file(os.path.join("build", "platform-android.mk"),
-                        "-I$(NDKROOT)/sources/cxx-stl/stlport/stlport",
-                        "-I$(NDKROOT)/sources/cxx-stl/llvm-libc++/include")
                     libcxx = str(self.settings.compiler.libcxx)
                     tools.replace_in_file(os.path.join("build", "platform-android.mk"),
                         "$(NDKROOT)/sources/cxx-stl/stlport/libs/$(APP_ABI)/libstlport_static.a",
                         ("$(NDKROOT)/sources/cxx-stl/llvm-libc++/libs/$(APP_ABI)/lib%s "
                             % "c++_static.a" if libcxx == "c++_static" else "c++_shared.so") +
                         "$(NDKROOT)/sources/cxx-stl/llvm-libc++/libs/$(APP_ABI)/libc++abi.a")
-                    tools.replace_in_file(os.path.join("build", "platform-android.mk"),
-                        "CXX = $(TOOLCHAINPREFIX)g++\nCC = $(TOOLCHAINPREFIX)gcc",
-                        "")
-                    # Use default sysroot
-                    tools.replace_in_file(os.path.join("build", "platform-android.mk"),
-                        "CFLAGS += -DANDROID_NDK -fpic --sysroot=$(SYSROOT) -MMD -MP",
-                        "CFLAGS += -DANDROID_NDK -fpic -MMD -MP")
-                    tools.replace_in_file(os.path.join("build", "platform-android.mk"),
-                        "LDFLAGS += --sysroot=$(SYSROOT)",
-                        "")
-                    # No need to auto detect compilers, so remove it
-                    tools.replace_in_file(os.path.join("build", "platform-android.mk"),
-                        "$(error Compiler not found, bad NDKROOT or ARCH?)",
-                        "")
                     args.append('OS=android')
                     ndk_home = os.environ["ANDROID_NDK_HOME"]
                     args.append('NDKROOT=%s' % ndk_home)  # not NDK_ROOT here
