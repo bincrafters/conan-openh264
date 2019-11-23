@@ -7,7 +7,6 @@ class OpenH264Conan(ConanFile):
     name = "openh264"
     version = "1.7.0"
     url = "https://github.com/bincrafters/conan-openh264"
-    author = "Bincrafters <bincrafters@gmail.com>"
     homepage = 'http://www.openh264.org/'
     description = "Open Source H.264 Codec"
     topics = ("conan", "h264", "codec", "video", "compression", )
@@ -25,7 +24,7 @@ class OpenH264Conan(ConanFile):
         self.build_requires("nasm/2.13.02")
         if tools.os_info.is_windows:
             if "CONAN_BASH_PATH" not in os.environ:
-                self.build_requires("msys2_installer/latest@bincrafters/stable")
+                self.build_requires("msys2/20161025")
 
     def source(self):
         source_url = "https://github.com/cisco/openh264"
