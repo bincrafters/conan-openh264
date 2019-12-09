@@ -24,7 +24,7 @@ class OpenH264Conan(ConanFile):
         self.build_requires("nasm/2.13.02")
         if tools.os_info.is_windows:
             if "CONAN_BASH_PATH" not in os.environ:
-                self.build_requires("msys2/20161025")
+                self.build_requires("msys2/20190524")
 
     def source(self):
         source_url = "https://github.com/cisco/openh264"
